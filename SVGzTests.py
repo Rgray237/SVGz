@@ -31,21 +31,25 @@ class MyFirsttests(unittest.TestCase):
     def test_init_frame(self):
         self.assertEqual(SVGzFrame().svgTxt,f'<svg viewBox="-0 -0 1920 1080" xmlns="http://www.w3.org/2000/svg">\n</svg>')
 
+    def test_clear_frame(self):
+        fram = SVGzFrame()
+        line1 = SVGzLine(0,1,2,3)
+        fram.addNode(line1)
+        self.assertEqual(len(fram.nodes),1)
+        fram.clearFrame()
+        self.assertEqual(len(fram.nodes),0)
 
 
     ##Mark Animation Tests
     def test_init_animation(self):
         self.assertTrue(SVGzAnimation()!=None)
-    def test_animation_add_key_frame(self):
-        anim = SVGzAnimation()
-        self.assertIsNone(anim.addKeyFrame(SVGzFrame(),3))
     def test_animation_set_duration(self):
         anim = SVGzAnimation()
-        self.assertEqual(anim.setDuration(20.4),20.4)
+        self.assertEqual(anim.setTimelineDuration(20.4),20.4)
     def test_animation_get_fps(self):
         self.assertEqual(SVGzAnimation().getFPS(),60)
 
-    def test_key_frames_morphable(self):
+    def test_frames_morphable(self):
         fram1 = SVGzFrame()
         fram2 = SVGzFrame()
         line1 = SVGzLine(0,0,10,50)
@@ -56,47 +60,9 @@ class MyFirsttests(unittest.TestCase):
         fram1.addNode(line1)
         fram1.addNode(line2)
         fram2.addNode(line3)
-        self.assertFalse(SVGzAnimation().areKeyFramesMorphable(fram1,fram2))
+        self.assertFalse(SVGzAnimation().areFramesMorphable(fram1,fram2))
         fram2.addNode(line4)
-        self.assertTrue(SVGzAnimation().areKeyFramesMorphable(fram1,fram2))
-
-
-
-    def test_animation_morph_btwn_key_frames(self):
-        anim = SVGzAnimation()
-        fram1 = SVGzFrame()
-        fram2 = SVGzFrame()
-        line1 = SVGzLine(0,0,10,50)
-        line2 = SVGzLine(10,20,40,100)
-        line3 = SVGzLine(300,23,95,1000)
-        line4 = SVGzLine(400,123,695,329)
-        duration = 10
-        fram1.addNode(line1)
-        fram1.addNode(line2)
-        fram2.addNode(line3)
-        fram2.addNode(line4)
-        if anim.areKeyFramesMorphable(fram1,fram2):
-            self.assertEqual(anim.morphedFrameAtTime(5,fram1,fram2,duration).getTxt(),f'<svg viewBox="-0 -0 1920 1080" xmlns="http://www.w3.org/2000/svg">\n<line x1="150.0" y1="11.5" x2="52.5" y2="525.0" stroke="red"></line>\n<line x1="205.0" y1="71.5" x2="367.5" y2="214.5" stroke="red"></line>\n</svg>')
-        else:
-            self.assertTrue(False)
-
-
-    def test_get_most_recent_key_frame_at_time(self):
-        anim= SVGzAnimation()
-        fram1 = SVGzFrame()
-        fram2 = SVGzFrame()
-        line1 = SVGzLine(0,0,10,50)
-        line2 = SVGzLine(10,20,40,100)
-        duration = 10
-        anim.setDuration(10)
-        anim.addKeyFrame(fram1,0)
-        anim.addKeyFrame(fram2,7)
-        anim.addKeyFrame(fram1,10)
-
-        self.assertEqual(anim.getMostRecentKeyFrame(3),fram1)
-        self.assertEqual(anim.getMostRecentKeyFrame(7),fram2)
-        self.assertEqual(anim.getMostRecentKeyFrame(8),fram2)
-        self.assertEqual(anim.getMostRecentKeyFrame(10),fram1)
+        self.assertTrue(SVGzAnimation().areFramesMorphable(fram1,fram2))
 
 
     def test_get_animation_frame_at_time(self):
@@ -106,26 +72,45 @@ class MyFirsttests(unittest.TestCase):
         line1 = SVGzLine(0,0,10,50)
         line2 = SVGzLine(10,20,40,100)
         duration = 10
-        anim.setDuration(10)
-        anim.addKeyFrame(fram1,0)
-        anim.addKeyFrame(fram2,7)
-
-        self.assertEqual(anim.getFrameAtTime(0),fram1)
-        self.assertEqual(anim.getFrameAtTime(3),fram1)
-        self.assertEqual(anim.getFrameAtTime(7),fram2)
+        anim.setTimelineDuration(10)
 
 
-    #MARK test morphs
-    def test_create_morph(self):
+
+    #MARK test timeline
+    def test_add_feature(self):
+        timeline = SVGzTimeline(100)
         fram1 = SVGzFrame()
         fram2 = SVGzFrame()
         line1 = SVGzLine(0,0,10,50)
         line2 = SVGzLine(10,20,40,100)
+        fram1.addNode(line1)
+        fram2.addNode(line2)
         duration = 10
-        anim.setDuration(10)
-        anim.addKeyFrame(fram1,0)
-        anim.addKeyFrame(fram2,7)
-        morph = SVGzMorph(fram1,fram2)
+        timeline.addFeature(SVGzMorph(fram1,fram2),0,duration)
+
+
+    #MARK test morphs
+    def test_morph(self):
+        fram1 = SVGzFrame()
+        fram2 = SVGzFrame()
+        line1 = SVGzLine(0,0,10,50)
+        line2 = SVGzLine(10,20,40,100)
+        line3 = SVGzLine(300,23,95,1000)
+        line4 = SVGzLine(400,123,695,329)
+        resultFram = SVGzFrame()
+        line5 = SVGzLine(90.0,6.9,35.5,335.0)
+        line6 = SVGzLine(127.0,50.9,236.5,168.7)
+        resultFram.addNode(line5)
+        resultFram.addNode(line6)
+        fram1.addNode(line1)
+        fram1.addNode(line2)
+        fram2.addNode(line3)
+        fram2.addNode(line4)
+        mrph = SVGzMorph(fram1,fram2)
+        self.assertEqual(mrph.type,"Morph")
+        self.assertEqual(mrph.getFirst(),fram1)
+        self.assertEqual(mrph.getSecond(),fram2)
+        self.assertEqual(mrph.getFrameAtTime(3,10).getTxt(),resultFram.getTxt())
 
 
     #MARK test SVGz overall
@@ -136,16 +121,20 @@ class MyFirsttests(unittest.TestCase):
         fram2 = SVGzFrame()
         line1 = SVGzLine(0,0,10,50)
         line2 = SVGzLine(10,20,40,100)
+        line3 = SVGzLine(300,23,95,1000)
+        line4 = SVGzLine(400,123,695,329)
+        mrph = SVGzMorph(fram1,fram2)
         fram1.addNode(line1)
-        fram2.addNode(line2)
+        fram1.addNode(line2)
+        fram2.addNode(line3)
+        fram2.addNode(line4)
         duration = 10
-        anim.setDuration(10)
-        anim.addKeyFrame(fram1,0)
-        anim.addKeyFrame(fram2,7)
+        anim.setTimelineDuration(duration)
+        anim.timeline.addFeature(mrph,0,10)
         svgz.generateMoviePyClipFromAnimation(anim)
-        svgz.saveFrameAtTime(3,anim,"frame1")
+        svgz.saveFrameAtTime(0,anim,"frame1")
         svgz.saveFrameAtTime(8,anim,"frame2")
-        #self.assertTrue(svgz.writeVideo(anim,"andyandrobert.wav"))
+        self.assertTrue(svgz.writeVideo(anim,"andyandrobert.wav"))
 
 
 

@@ -77,6 +77,10 @@ class SVGzFrame:
         self.nodes.append(nd)
         return
 
+    def clearFrame(self):
+        self.nodes.clear()
+        return
+
     def getTxt(self):
         nodesTxt = ""
         for x in self.nodes:
