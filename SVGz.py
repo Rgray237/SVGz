@@ -1,4 +1,3 @@
-import gizeh as gz
 import numpy as np
 import copy
 from SVGzFrame import *
@@ -15,6 +14,17 @@ class SVGzMorph(SVGzFeature):
         self.frame1 = frame1
         self.frame2 = frame2
         self.newFrame = SVGzFrame()
+        self.createNewFrameNodes()
+
+    def createNewFrameNodes(self):
+        newNodes = []
+        for nd in self.frame1.nodes:
+            if nd.getNodeType() == "LINE":
+                newNodes.append(SVGzLine(0,0,0,0))
+            elif nd.getNodeType() == "ELLIPSE":
+                newNodes.append(SVGzEllipse(0,0,0,0))
+        self.newFrame.setNodes(newNodes)
+        return
 
     def getFirst(self):
         return self.frame1
@@ -24,18 +34,16 @@ class SVGzMorph(SVGzFeature):
 
     def getFrameAtTime(self,t,duration):
         newFram = self.newFrame
-        newFram.clearFrame()
+        #print("Time t: " + str(t)+ " frame1 nodes length:" + str(len(self.frame1.nodes))+ " newFrameNodes length: " + str(len(self.newFrame.nodes)))
         for nd in range(len(self.frame1.nodes)):
             mrphs1 = self.frame1.nodes[nd].getMorphables()
             mrphs2 = self.frame2.nodes[nd].getMorphables()
-            if self.frame1.nodes[nd].getNodeType()=="LINE":
-                newLine = SVGzLine(0,0,0,0)
-                newMorphs = []
-                for x in range(4):
-                    value = (mrphs2[x]-mrphs1[x])*t/duration + mrphs1[x]
-                    newMorphs.append(value)
-                newLine.setMorphables(newMorphs)
-                newFram.addNode(newLine)
+            numIndices = len(mrphs1)
+            newMorphs = []
+            for x in range(numIndices):
+                value = (mrphs2[x]-mrphs1[x])*t/duration + mrphs1[x]
+                newMorphs.append(value)
+            newFram.nodes[nd].setMorphables(newMorphs)
 
         return newFram
 

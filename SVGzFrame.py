@@ -1,4 +1,3 @@
-import gizeh as gz
 import numpy as np
 import moviepy.editor as mpy
 import cairosvg as csvg
@@ -29,6 +28,31 @@ class SVGzNode:
         return
 
     def setMorphables(self):
+        return
+
+class SVGzEllipse(SVGzNode):
+    def __init__(self,cx,cy,rx,ry):
+        self.cx = cx
+        self.cy = cy
+        self.rx = rx
+        self.ry = ry
+        self.stroke = "green"
+        self.svgTxt = f'<ellipse cx="{self.cx}" cy="{self.cy}" rx="{self.rx}" ry="{self.ry}" stroke="{self.stroke}"></ellipse>\n'
+
+    def updateSVGTxt(self):
+        self.svgTxt = f'<ellipse cx="{self.cx}" cy="{self.cy}" rx="{self.rx}" ry="{self.ry}" stroke="{self.stroke}"></ellipse>\n'
+
+    def getNodeType(self):
+        return "ELLIPSE"
+
+    def getMorphables(self):
+        return [self.cx,self.cy,self.rx,self.ry]
+
+    def setMorphables(self,morphList):
+        self.cx = morphList[0]
+        self.cy = morphList[1]
+        self.rx = morphList[2]
+        self.ry = morphList[3]
         return
 
 class SVGzLine(SVGzNode):
@@ -75,6 +99,13 @@ class SVGzFrame:
 
     def addNode(self,nd):
         self.nodes.append(nd)
+        return
+
+    def getNodes(self):
+        return self.nodes
+
+    def setNodes(self,nds):
+        self.nodes = nds
         return
 
     def clearFrame(self):
