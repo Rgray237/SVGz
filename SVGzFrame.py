@@ -5,6 +5,8 @@ from PIL import Image as pilimg
 from PIL import ImageFilter
 import io
 
+
+
 class SVGzNode:
 
     def __init__(self):
@@ -37,10 +39,10 @@ class SVGzEllipse(SVGzNode):
         self.rx = rx
         self.ry = ry
         self.stroke = "green"
-        self.svgTxt = f'<ellipse cx="{self.cx}" cy="{self.cy}" rx="{self.rx}" ry="{self.ry}" stroke="{self.stroke}"></ellipse>\n'
+        self.updateSVGTxt()
 
     def updateSVGTxt(self):
-        self.svgTxt = f'<ellipse cx="{self.cx}" cy="{self.cy}" rx="{self.rx}" ry="{self.ry}" stroke="{self.stroke}"></ellipse>\n'
+        self.svgTxt = f'<ellipse cx="{self.cx}" cy="{self.cy}" rx="{self.rx}" ry="{self.ry}" stroke="{self.stroke}" fill="none"></ellipse>\n'
 
     def getNodeType(self):
         return "ELLIPSE"
@@ -63,7 +65,7 @@ class SVGzLine(SVGzNode):
         self.x2 = x2
         self.y2 = y2
         self.stroke="red"
-        self.svgTxt = f'<line x1="{self.x1}" y1="{self.y1}" x2="{self.x2}" y2="{self.y2}" stroke="{self.stroke}"></line>\n'
+        self.updateSVGTxt()
 
     def updateSVGTxt(self):
         self.svgTxt = f'<line x1="{self.x1}" y1="{self.y1}" x2="{self.x2}" y2="{self.y2}" stroke="{self.stroke}"></line>\n'
@@ -81,7 +83,46 @@ class SVGzLine(SVGzNode):
         self.y2 = morphList[3]
         return
 
+class SVGzPolyline(SVGzNode):
+    def __init__(self, lineArray):
+        self.array = lineArray
+        self.stroke = "green"
+        str = self.getPolylineStringFromArray(lineArray)
+        self.svgTxt = f'<polyline points="{str}" stroke="{self.stroke}" fill="none"></polyline>\n'
 
+    def updateSVGTxt(self):
+        str = self.getPolylineStringFromArray(self.array)
+        self.svgTxt = f'<polyline points="{str}" stroke="{self.stroke}" fill="none"></polyline>\n'
+
+    def getPolylineStringFromArray(self,array):
+        constructedStr = ""
+        for a,b in array:
+            constructedStr+=str(a)+","+str(b)+" "
+        constructedStr = constructedStr[:-1]
+        return constructedStr
+
+    def setArray(self,array):
+        self.array = array
+        self.updateSVGTxt()
+
+    def getNodeType(self):
+        return "POLYLINE"
+
+    def getNumLines(self):
+        return len(self.array)
+
+    def getMorphables(self):
+        arr = []
+        for a,b in self.array:
+            arr.append(a)
+            arr.append(b)
+        return arr
+
+    def setMorphables(self,mrphLst):
+        newArray = []
+        for x in range(0,len(mrphLst),2):
+            newArray.append((mrphLst[x],mrphLst[x+1]))
+        self.setArray(newArray)
 
 
 class SVGzFrame:
@@ -94,7 +135,7 @@ class SVGzFrame:
         self.header = f'<svg viewBox="-{self.image_pad} -{self.image_pad} {self.image_width + 2 * self.image_pad} {self.image_height + 2 * self.image_pad}" xmlns="http://www.w3.org/2000/svg">\n'
         self.footer = f'</svg>'
         self.nodes = []
-        self.svgTxt = self.getTxt()
+        self.svgTxt = self.getSVGTxt()
         self.t = 0
 
     def addNode(self,nd):
@@ -112,7 +153,7 @@ class SVGzFrame:
         self.nodes.clear()
         return
 
-    def getTxt(self):
+    def getSVGTxt(self):
         nodesTxt = ""
         for x in self.nodes:
             nodesTxt += x.getSVGTxt()
@@ -139,7 +180,7 @@ class SVGzFrame:
 
 
     def getPILImage(self):
-        temp = csvg.svg2png(self.getTxt())
+        temp = csvg.svg2png(self.getSVGTxt())
         image = pilimg.open(io.BytesIO(temp))
         return image
 

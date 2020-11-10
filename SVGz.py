@@ -23,6 +23,8 @@ class SVGzMorph(SVGzFeature):
                 newNodes.append(SVGzLine(0,0,0,0))
             elif nd.getNodeType() == "ELLIPSE":
                 newNodes.append(SVGzEllipse(0,0,0,0))
+            elif nd.getNodeType() == "POLYLINE":
+                newNodes.append(SVGzPolyline([(0,0),(1,1)]))
         self.newFrame.setNodes(newNodes)
         return
 
@@ -88,6 +90,10 @@ class SVGzAnimation:
         for i in range(len(nodes1)):
             if nodes1[i].getNodeType() != nodes2[i].getNodeType():
                 return False
+            if nodes1[i].getNodeType() == "POLYLINE":
+                if nodes1[i].getNumLines() != nodes2[i].getNumLines():
+                    return False
+
         return True
 
     def getFPS(self):
